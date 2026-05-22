@@ -1,0 +1,166 @@
+services:
+
+  chat-db:
+    image: postgres:16-alpine
+    container_name: chat-db
+    environment:
+      POSTGRES_DB: uit_chat_db
+      POSTGRES_USER: uit_chat
+      POSTGRES_PASSWORD: uit_chat_pass
+    ports:
+      - "5437:5432"
+    volumes:
+      - chat_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uit_chat -d uit_chat_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  chat-ms:
+    build:
+      context: ./chat-ms
+      dockerfile: Dockerfile
+    container_name: chat-ms
+    environment:
+      CHAT_DB_URL: jdbc:postgresql://chat-db:5432/uit_chat_db
+      CHAT_DB_USER: uit_chat
+      CHAT_DB_PASSWORD: uit_chat_pass
+    depends_on:
+      chat-db:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@uit.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - chat-db
+
+  # ── Self-hosted Jitsi Meet (no login, no lobby, full control) ──────────────
+  jitsi-web:
+    image: jitsi/web:stable
+    container_name: jitsi-web
+    restart: unless-stopped
+    ports:
+      - "8880:80"
+    volumes:
+      - jitsi_web_config:/config
+      - ./jitsi-custom/custom-config.js:/config/custom-config.js:ro
+      - ./jitsi-custom/custom-config.js:/usr/share/jitsi-meet/custom-config.js:ro
+    environment:
+      ENABLE_AUTH: "0"
+      ENABLE_GUESTS: "1"
+      ENABLE_WELCOME_PAGE: "0"
+      ENABLE_PREJOIN_PAGE: "0"
+      DISABLE_HTTPS: "1"
+      ENABLE_XMPP_WEBSOCKET: "0"
+      ENABLE_HTTP_REDIRECT: "0"
+      PUBLIC_URL: "http://localhost:8880"
+      XMPP_DOMAIN: "meet.jitsi"
+      XMPP_SERVER: "jitsi-prosody"
+      XMPP_BOSH_URL_BASE: "http://jitsi-prosody:5280"
+      XMPP_AUTH_DOMAIN: "auth.meet.jitsi"
+      XMPP_MUC_DOMAIN: "muc.meet.jitsi"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.jitsi"
+      XMPP_GUEST_DOMAIN: "guest.meet.jitsi"
+      JICOFO_AUTH_PASSWORD: "jicofo_secret_123"
+      JVB_AUTH_PASSWORD: "jvb_secret_123"
+      JIBRI_XMPP_PASSWORD: "jibri_xmpp_secret"
+      JIBRI_RECORDER_PASSWORD: "jibri_recorder_secret"
+      TZ: "Africa/Tunis"
+    depends_on:
+      - jitsi-prosody
+
+  jitsi-prosody:
+    image: jitsi/prosody:stable
+    container_name: jitsi-prosody
+    expose:
+      - "5222"
+      - "5347"
+      - "5280"
+    volumes:
+      - jitsi_prosody_config:/config
+      - jitsi_prosody_plugins:/prosody-plugins-custom
+    environment:
+      ENABLE_AUTH: "0"
+      ENABLE_GUESTS: "1"
+      XMPP_DOMAIN: "meet.jitsi"
+      XMPP_AUTH_DOMAIN: "auth.meet.jitsi"
+      XMPP_MUC_DOMAIN: "muc.meet.jitsi"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.jitsi"
+      XMPP_GUEST_DOMAIN: "guest.meet.jitsi"
+      JICOFO_COMPONENT_SECRET: "jicofo_component_secret_abc"
+      JICOFO_AUTH_PASSWORD: "jicofo_secret_123"
+      JVB_AUTH_PASSWORD: "jvb_secret_123"
+      JIBRI_XMPP_PASSWORD: "jibri_xmpp_secret"
+      JIBRI_RECORDER_PASSWORD: "jibri_recorder_secret"
+      TZ: "Africa/Tunis"
+    networks:
+      default:
+        aliases:
+          - meet.jitsi
+          - auth.meet.jitsi
+          - muc.meet.jitsi
+          - internal-muc.meet.jitsi
+          - guest.meet.jitsi
+
+  jitsi-jicofo:
+    image: jitsi/jicofo:stable
+    container_name: jitsi-jicofo
+    volumes:
+      - jitsi_jicofo_config:/config
+    environment:
+      ENABLE_AUTH: "0"
+      XMPP_DOMAIN: "meet.jitsi"
+      XMPP_SERVER: "jitsi-prosody"
+      XMPP_AUTH_DOMAIN: "auth.meet.jitsi"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.jitsi"
+      JICOFO_COMPONENT_SECRET: "jicofo_component_secret_abc"
+      JICOFO_AUTH_PASSWORD: "jicofo_secret_123"
+      JVB_AUTH_PASSWORD: "jvb_secret_123"
+      TZ: "Africa/Tunis"
+    depends_on:
+      - jitsi-prosody
+
+  jitsi-jvb:
+    image: jitsi/jvb:stable
+    container_name: jitsi-jvb
+    ports:
+      - "10000:10000/udp"
+      - "4443:4443"
+    volumes:
+      - jitsi_jvb_config:/config
+    environment:
+      XMPP_DOMAIN: "meet.jitsi"
+      XMPP_SERVER: "jitsi-prosody"
+      XMPP_AUTH_DOMAIN: "auth.meet.jitsi"
+      XMPP_INTERNAL_MUC_DOMAIN: "internal-muc.meet.jitsi"
+      JVB_AUTH_PASSWORD: "jvb_secret_123"
+      JVB_BREWERY_MUC: "jvbbrewery"
+      JVB_PORT: "10000"
+      JVB_TCP_HARVESTER_DISABLED: "true"
+      JVB_ADVERTISE_IPS: "127.0.0.1"
+      PUBLIC_URL: "http://localhost:8880"
+      TZ: "Africa/Tunis"
+    depends_on:
+      - jitsi-prosody
+
+volumes:
+  chat_db_data:
+  pgadmin_data:
+  jitsi_web_config:
+  jitsi_prosody_config:
+  jitsi_prosody_plugins:
+  jitsi_jicofo_config:
+  jitsi_jvb_config:
