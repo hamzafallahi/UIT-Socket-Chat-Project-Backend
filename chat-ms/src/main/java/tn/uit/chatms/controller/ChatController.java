@@ -9,6 +9,7 @@ import tn.uit.chatms.dto.ChatMessageDto;
 import tn.uit.chatms.entity.Message;
 import tn.uit.chatms.service.ChatService;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Controller
@@ -25,14 +26,17 @@ public class ChatController {
     @MessageMapping("/chat.send")
     public void sendMessage(ChatMessageDto dto) {
         Message saved = chatService.saveMessage(dto);
-        Map<String, Object> response = Map.of(
-                "id", saved.getId(),
-                "conversationId", dto.getConversationId(),
-                "senderId", saved.getSender().getUsername(),
-                "content", saved.getContent(),
-                "timestamp", saved.getTimestamp(),
-                "status", saved.getStatus().name()
-        );
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", saved.getId());
+        response.put("conversationId", dto.getConversationId());
+        response.put("senderId", saved.getSender().getUsername());
+        response.put("content", saved.getContent());
+        response.put("timestamp", saved.getTimestamp());
+        response.put("status", saved.getStatus().name());
+        response.put("fileUrl", saved.getFileUrl());
+        response.put("messageType", saved.getMessageType());
+        
         messagingTemplate.convertAndSend("/topic/chat/" + dto.getConversationId(), response);
     }
 

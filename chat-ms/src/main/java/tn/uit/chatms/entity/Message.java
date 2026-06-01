@@ -29,6 +29,9 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private String fileUrl;
+    private String messageType;
+
     private LocalDateTime timestamp;
 
     @Enumerated(EnumType.STRING)

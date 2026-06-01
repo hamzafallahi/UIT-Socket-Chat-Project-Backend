@@ -56,6 +56,9 @@ public class ChatRestController {
             map.put("content", m.getContent());
             map.put("timestamp", m.getTimestamp());
             map.put("status", m.getStatus() != null ? m.getStatus().name() : "SENT");
+            map.put("fileUrl", m.getFileUrl());
+            map.put("messageType", m.getMessageType() != null ? m.getMessageType() : "TEXT"); 
+
             return map;
         }).toList());
     }

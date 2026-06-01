@@ -11,4 +11,6 @@ public class ChatMessageDto {
     private Long conversationId;
     private String senderId;
     private String content;
+    private String fileUrl;
+    private String messageType;
 }

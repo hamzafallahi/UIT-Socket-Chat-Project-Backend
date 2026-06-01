@@ -38,6 +38,8 @@ public class ChatService {
                 .conversation(conv)
                 .sender(sender)
                 .content(dto.getContent())
+                .fileUrl(dto.getFileUrl()) 
+                .messageType(dto.getMessageType())
                 .build();
         return messageRepository.save(msg);
     }
