@@ -92,6 +92,15 @@ public class PresenceEventListener {
         return new PresenceSnapshotDto(onlineUsers, lastSeen, now);
     }
 
+    public void sendSnapshotToUser(String userId) {
+        LocalDateTime now = LocalDateTime.now();
+        messagingTemplate.convertAndSend("/topic/presence/" + userId, buildSnapshot(now));
+    }
+
+    public String getUserIdForSession(String sessionId) {
+        return sessionUsers.get(sessionId);
+    }
+
     private String resolveUserId(StompHeaderAccessor accessor) {
         Principal principal = accessor.getUser();
         if (principal != null && principal.getName() != null && !principal.getName().isBlank()) {
