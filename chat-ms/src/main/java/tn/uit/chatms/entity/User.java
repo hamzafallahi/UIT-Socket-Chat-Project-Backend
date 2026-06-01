@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +30,9 @@ public class User {
     private String displayName;
 
     private String role;
+
+    @Column(name = "last_seen")
+    private LocalDateTime lastSeen;
 
   
     @ManyToMany
