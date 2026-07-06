@@ -1,16 +1,11 @@
 package tn.uit.chatms.dto;
 
-import lombok.*;
+import lombok.Builder;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class JitsiRoomDto {
-
-    private Long conversationId;
-    private String roomName;
-    private String jitsiUrl;
-    private String jwt;
-}
+@Builder // Keep this if you use JitsiRoomDto.builder() in your code
+public record JitsiRoomDto(
+    Long conversationId,
+    String roomName,
+    String jitsiUrl,
+    String jwt
+) {}

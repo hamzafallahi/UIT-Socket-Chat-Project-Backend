@@ -13,12 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-public class ChatController {
+public class ChattingController {
 
     private final ChatService chatService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public ChatController(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
+    public ChattingController(ChatService chatService, SimpMessagingTemplate messagingTemplate) {
         this.chatService = chatService;
         this.messagingTemplate = messagingTemplate;
     }
@@ -29,7 +29,7 @@ public class ChatController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", saved.getId());
-        response.put("conversationId", dto.getConversationId());
+        response.put("conversationId", dto.conversationId());
         response.put("senderId", saved.getSender().getUsername());
         response.put("content", saved.getContent());
         response.put("timestamp", saved.getTimestamp());
@@ -37,11 +37,11 @@ public class ChatController {
         response.put("fileUrl", saved.getFileUrl());
         response.put("messageType", saved.getMessageType());
         
-        messagingTemplate.convertAndSend("/topic/chat/" + dto.getConversationId(), response);
+        messagingTemplate.convertAndSend("/topic/chat/" + dto.conversationId(), response);
     }
 
     @MessageMapping("/call.invite")
     public void inviteToCall(CallInviteDto dto) {
-        messagingTemplate.convertAndSend("/topic/call/" + dto.getToUserId(), dto);
+        messagingTemplate.convertAndSend("/topic/call/" + dto.toUserId(), dto);
     }
 }

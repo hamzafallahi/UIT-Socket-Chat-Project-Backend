@@ -3,9 +3,9 @@ package tn.uit.chatms.service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import tn.uit.chatms.dto.LoginRequest;
-import tn.uit.chatms.dto.LoginResponse;
-import tn.uit.chatms.dto.RegisterRequest;
+import tn.uit.chatms.dto.AuthLoginRequest;
+import tn.uit.chatms.dto.AuthLoginResponse;
+import tn.uit.chatms.dto.AuthRegisterRequest;
 import tn.uit.chatms.entity.User;
 import tn.uit.chatms.repository.UserRepository;
 
@@ -33,17 +33,17 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public LoginResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
+    public AuthLoginResponse login(AuthLoginRequest request) {
+        User user = userRepository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Invalid username or password");
         }
 
         String token = generateToken(user);
 
-        return LoginResponse.builder()
+        return AuthLoginResponse.builder()
                 .token(token)
                 .userId(user.getUsername())
                 .displayName(user.getDisplayName())
@@ -65,19 +65,19 @@ public class AuthService {
                 .compact();
     }
 
-    public LoginResponse register(RegisterRequest request) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+    public AuthLoginResponse register(AuthRegisterRequest request) {
+        if (userRepository.findByUsername(request.username()).isPresent()) {
             throw new RuntimeException("Username already exists");
         }
         User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getUsername())
+                .username(request.username())
+                .password(passwordEncoder.encode(request.password()))
+                .displayName(request.displayName() != null ? request.displayName() : request.username())
                 .role("USER")
                 .build();
         userRepository.save(user);
         String token = generateToken(user);
-        return LoginResponse.builder()
+        return AuthLoginResponse.builder()
                 .token(token)
                 .userId(user.getUsername())
                 .displayName(user.getDisplayName())

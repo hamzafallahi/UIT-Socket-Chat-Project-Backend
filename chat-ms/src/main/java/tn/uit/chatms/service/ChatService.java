@@ -30,16 +30,16 @@ public class ChatService {
     }
 
     public Message saveMessage(ChatMessageDto dto) {
-        Conversation conv = conversationRepository.findById(dto.getConversationId())
+        Conversation conv = conversationRepository.findById(dto.conversationId())
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
-        User sender = userRepository.findByUsername(dto.getSenderId())
-                .orElseThrow(() -> new RuntimeException("User not found: " + dto.getSenderId()));
+        User sender = userRepository.findByUsername(dto.senderId())
+                .orElseThrow(() -> new RuntimeException("User not found: " + dto.senderId()));
         Message msg = Message.builder()
                 .conversation(conv)
                 .sender(sender)
-                .content(dto.getContent())
-                .fileUrl(dto.getFileUrl()) 
-                .messageType(dto.getMessageType())
+                .content(dto.content())
+                .fileUrl(dto.fileUrl()) 
+                .messageType(dto.messageType())
                 .build();
         return messageRepository.save(msg);
     }
@@ -51,11 +51,11 @@ public class ChatService {
     @Transactional
     public Conversation createConversation(CreateConversationDto dto) {
         Conversation conv = Conversation.builder()
-                .type(dto.getType() != null ? ConversationType.valueOf(dto.getType()) : ConversationType.PRIVATE)
+                .type(dto.type() != null ? ConversationType.valueOf(dto.type()) : ConversationType.PRIVATE)
                 .build();
         conv = conversationRepository.save(conv);
 
-        List<User> users = userRepository.findByUsernameIn(dto.getParticipants());
+        List<User> users = userRepository.findByUsernameIn(dto.participants());
         for (User user : users) {
             user.getConversations().add(conv);
         }

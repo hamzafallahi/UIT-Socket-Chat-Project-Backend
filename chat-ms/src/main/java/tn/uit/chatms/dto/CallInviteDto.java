@@ -1,19 +1,14 @@
 package tn.uit.chatms.dto;
 
-import lombok.*;
+import lombok.Builder;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class CallInviteDto {
-
-    private Long conversationId;
-    private String fromUserId;
-    private String fromDisplayName;
-    private String toUserId;
-    private String roomName;
-    private String jitsiUrl;
-    private String jwt;
-}
+@Builder // Keep this if your services use CallInviteDto.builder()
+public record CallInviteDto(
+    Long conversationId,
+    String fromUserId,
+    String fromDisplayName,
+    String toUserId,
+    String roomName,
+    String jitsiUrl,
+    String jwt
+) {}

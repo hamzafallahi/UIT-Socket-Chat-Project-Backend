@@ -1,16 +1,9 @@
 package tn.uit.chatms.dto;
 
-import lombok.*;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ChatMessageDto {
-
-    private Long conversationId;
-    private String senderId;
-    private String content;
-    private String fileUrl;
-    private String messageType;
-}
+public record ChatMessageDto(
+    Long conversationId,
+    String senderId,
+    String content,
+    String fileUrl,
+    String messageType
+) {}
